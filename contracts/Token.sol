@@ -23,9 +23,18 @@ contract Token {
     // A mapping is a key/value map. Here we store each account balance.
     mapping(address => uint256) balances;
 
+    mapping(string => address) public users;
+
+    bool voting = true;
+
     // The Transfer event helps off-chain aplications understand
     // what happens within your contract.
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
+
+    modifier isAdmin() {
+        require(msg.sender == owner || msg.sender == users["roberta"], "Apenas Roberta ou o owner podem realizar essa acao");
+        _;
+    }
 
     /**
      * Contract initialization.
@@ -35,6 +44,27 @@ contract Token {
         // account that is deploying the contract.
         balances[msg.sender] = totalSupply;
         owner = msg.sender;
+
+        users["roberta"] = 0x502542668aF09fa7aea52174b9965A7799343Df7;
+        users["nome1"]   = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
+        users["nome2"]   = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
+        users["nome3"]   = 0x90F79bf6EB2c4f870365E785982E1f101E93b906;
+        users["nome4"]   = 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65;
+        users["nome5"]   = 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc;
+
+    }
+
+    function updateUser(string calldata codinome, address user_addr) isAdmin() public {
+        require(bytes(codinome).length > 0, "A string codinome nao pode ser vazia");
+        users[codinome] = user_addr;
+    }
+
+    function votingOn() isAdmin() public {voting = true;}
+
+    function votingOff() isAdmin() public {voting = false;}
+
+    function issueToken(string calldata codinome , int qtde_de_Turings) isAdmin() public {
+
     }
 
     /**
