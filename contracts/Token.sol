@@ -9,7 +9,7 @@ import "hardhat/console.sol";
 
 
 // This is the main building block for smart contracts.
-contract Token {
+contract Turing {
     // Some string type variables to identify the token.
     string public name = "My Hardhat Token";
     string public symbol = "MHT";
@@ -26,6 +26,8 @@ contract Token {
     mapping(string => address) public users;
 
     bool voting = true;
+
+    mapping(address => mapping(string => bool)) public hasVote;
 
     // The Transfer event helps off-chain aplications understand
     // what happens within your contract.
@@ -52,6 +54,7 @@ contract Token {
         users["nome4"]   = 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65;
         users["nome5"]   = 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc;
 
+
     }
 
     function updateUser(string calldata codinome, address user_addr) isAdmin() public {
@@ -63,8 +66,23 @@ contract Token {
 
     function votingOff() isAdmin() public {voting = false;}
 
-    function issueToken(string calldata codinome , int qtde_de_Turings) isAdmin() public {
+    function issueToken(string calldata codinome, uint256 qtde_de_Turings) isAdmin() public {
+        require(users[codinome] != address(0));
+        balances[users[codinome]] += qtde_de_Turings;
+    }
 
+    function vote(string calldata codinome, uint256 qtde_de_Turings) public {
+        require(voting == true);
+        require(users[codinome] != msg.sender);
+        require(hasVote[msg.sender][codinome] == false);
+        // TODO: verificar se msg.sender faz parte de users
+
+        hasVote[msg.sender][codinome] = true;
+
+        balances[users[codinome]] += qtde_de_Turings;
+
+        // TODO: gerar 1 turing para cada 10 votos
+        
     }
 
     /**
