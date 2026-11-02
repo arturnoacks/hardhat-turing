@@ -20,19 +20,19 @@ async function main() {
     await deployer.getAddress()
   );
 
-  console.log("Account balance:", (await deployer.getBalance()).toString());
+  console.log("Account balance:", (await ethers.provider.getBalance(deployer.address)).toString());
 
   const Token = await ethers.getContractFactory("Turing");
   const token = await Token.deploy();
   await token.deployed();
-
-  console.log("Token address:", token.address);
+  const tokenAddress = token.address;
+  console.log("Token address:", tokenAddress);
 
   // We also save the contract's artifacts and address in the frontend directory
-  saveFrontendFiles(token);
+  saveFrontendFiles(tokenAddress);
 }
 
-function saveFrontendFiles(token) {
+function saveFrontendFiles(tokenAddress) {
   const fs = require("fs");
   const contractsDir = path.join(__dirname, "..", "frontend", "src", "contracts");
 
@@ -42,7 +42,7 @@ function saveFrontendFiles(token) {
 
   fs.writeFileSync(
     path.join(contractsDir, "contract-address.json"),
-    JSON.stringify({ Token: token.address }, undefined, 2)
+    JSON.stringify({ Token: tokenAddress }, undefined, 2)
   );
 
   const TokenArtifact = artifacts.readArtifactSync("Turing");
