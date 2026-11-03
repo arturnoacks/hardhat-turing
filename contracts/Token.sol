@@ -20,6 +20,8 @@ contract Turing is ERC20 {
     mapping(address => mapping(address => bool)) public hasVote;
     mapping(address => uint256) public votesSubmitted;
 
+    string[] public codenamesList;
+
     modifier isAdmin() {
         require(msg.sender == owner || msg.sender == robertaAddress, "Apenas a Roberta ou o owner podem realizar essa acao");
         _;
@@ -48,12 +50,22 @@ contract Turing is ERC20 {
         _initUser("nome5",   0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc);
     }
 
+    function getCodenames() public view returns (string[] memory) {
+        return codenamesList;
+    }
+
     function _initUser(string memory codinome, address user_addr) internal validateRegister(codinome, user_addr) {
+        if (userAddress[codinome] == address(0)) {
+            codenamesList.push(codinome);
+        }
         userAddress[codinome] = user_addr;
         userCodename[user_addr] = codinome;
     }
 
     function updateUser(string memory codinome, address user_addr) public isAdmin validateRegister(codinome, user_addr) {
+        if (userAddress[codinome] == address(0)) {
+            codenamesList.push(codinome);
+        }
         userAddress[codinome] = user_addr;
         userCodename[user_addr] = codinome;
     }
@@ -82,5 +94,34 @@ contract Turing is ERC20 {
         if (votesSubmitted[msg.sender] % 10 == 0) {
             _mint(msg.sender, 1 * 10**decimals());
         }
+    }
+
+    struct UserRank {
+    string codinome;
+    address userAddress;
+    uint256 balance;
+    }
+
+    function getRanking() public view returns (UserRank[] memory) {
+        uint256 length = codenamesList.length;
+        UserRank[] memory ranks = new UserRank[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            string memory c = codenamesList[i];
+            address addr = userAddress[c];
+            ranks[i] = UserRank(c, addr, balanceOf(addr));
+        }
+
+        for (uint256 i = 0; i < length; i++) {
+            for (uint256 j = i + 1; j < length; j++) {
+                if (ranks[i].balance < ranks[j].balance) {
+                    UserRank memory temp = ranks[i];
+                    ranks[i] = ranks[j];
+                    ranks[j] = temp;
+                }
+            }
+        }
+
+        return ranks;
     }
 }
