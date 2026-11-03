@@ -35,7 +35,7 @@ export function Transfer({ transferTokens, tokenSymbol }) {
           <input className="form-control" type="text" name="to" required />
         </div>
         <div className="form-group">
-          <input className="btn btn-primary" type="submit" value="Transfer" />
+          <input className="btn btn-primary" type="submit" value="Transferir" />
         </div>
       </form>
     </div>

@@ -12,7 +12,6 @@ import contractAddress from "../contracts/contract-address.json";
 // These other components are just presentational components: the first
 // two are UI controls. The third one shows a loading status.
 // The fourth one renders a list of errors that appends to a list
-import { NoTokensMessage } from "./NoTokensMessage";
 import { ConnectWallet } from "./ConnectWallet";
 import { Loading } from "./Loading";
 import { Transfer } from "./Transfer";
@@ -87,15 +86,11 @@ export class Dapp extends React.Component {
               {this.state.tokenData.name} ({this.state.tokenData.symbol})
             </h1>
             <p>
-              Welcome <b>{this.state.selectedAddress}</b>, you have{" "}
+              Bem vindo <b>{this.state.selectedAddress}</b>, seu saldo é de{" "}
               <b>
                 {ethers.utils.formatUnits(this.state.balance, 18)} {this.state.tokenData.symbol}
               </b>
-              .
             </p>
-            {this.state.userCodename && (
-              <p className="text-muted">Codinome: <b>{this.state.userCodename}</b></p>
-            )}
           </div>
         </div>
 
@@ -124,12 +119,6 @@ export class Dapp extends React.Component {
 
         <div className="row">
           <div className="col-12">
-            {/*
-              If the user has no tokens, we show a message explaining it.
-            */}
-            {this.state.balance.eq(0) && (
-              <NoTokensMessage selectedAddress={this.state.selectedAddress} />
-            )}
 
             {/*
               This component takes a function that engages the Transfer component.
@@ -160,7 +149,7 @@ export class Dapp extends React.Component {
                 }}
               >
                 <div className="form-group">
-                  <label>Selecione o Candidato</label>
+                  <label>Codinome</label>
                   <select className="form-control" name="codinome" required defaultValue="">
                     <option value="" disabled>Escolha um codinome...</option>
                     {this.state.codenamesList.map((name) => (
@@ -234,7 +223,7 @@ export class Dapp extends React.Component {
                 <hr />
 
                 {/* Formulário de Emissão de Tokens (issueToken) */}
-                <h5>Emitir Tokens (issueToken)</h5>
+                <h5>Emitir Tokens</h5>
                 <form
                   onSubmit={(event) => {
                     event.preventDefault();
@@ -246,10 +235,17 @@ export class Dapp extends React.Component {
                     }
                   }}
                 >
-                  <div className="form-group">
-                    <label>Codinome do Destinatário</label>
-                    <input className="form-control" type="text" name="issueCodinome" required />
-                  </div>
+                <div className="form-group">
+                  <label>Selecione o Candidato</label>
+                  <select className="form-control" name="issueCodinome" required defaultValue="">
+                    <option value="" disabled>Escolha um codinome...</option>
+                    {this.state.codenamesList.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                   <div className="form-group mt-2">
                     <label>Quantidade de Tokens (TRN)</label>
                     <input className="form-control" type="number" step="0.01" name="issueAmount" required />
@@ -404,19 +400,31 @@ export class Dapp extends React.Component {
     const owner = await this._token.owner();
     const robertaAddr = await this._token.userAddress("roberta");
 
-    
+
     const rawRanking = await this._token.getRanking();
-    const rankingData = rawRanking.map((item) => ({
-      codinome: item.codinome,
-      address: item.userAddress,
-      formattedBalance: parseFloat(ethers.utils.formatUnits(item.balance, 18)),
-    }));
+    const rawList = Array.from(rawRanking);
+
+    const rankingData = rawList
+      .filter((item) => item.codinome && item.codinome.toLowerCase() !== "roberta")
+      .map((item) => ({
+        codinome: item.codinome,
+        address: item.userAddress,
+        formattedBalance: parseFloat(ethers.utils.formatUnits(item.balance, 18)),
+      }))
+      .sort((a, b) => b.formattedBalance - a.formattedBalance);
+
+
+    const codenamesList = rawList
+      .filter((item) => item.codinome && item.codinome.toLowerCase() !== "roberta")
+      .map((item) => item.codinome)
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    
 
     const isAdmin = 
       this.state.selectedAddress.toLowerCase() === owner.toLowerCase() ||
       this.state.selectedAddress.toLowerCase() === robertaAddr.toLowerCase();
     
-    this.setState({ balance, votingStatus, userCodename, isAdmin, ranking: rankingData});
+    this.setState({ balance, votingStatus, userCodename, isAdmin, ranking: rankingData, codenamesList});
   }
 
   // This method sends a transaction, which will transfer tokens

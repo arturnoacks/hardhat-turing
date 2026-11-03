@@ -97,29 +97,19 @@ contract Turing is ERC20 {
     }
 
     struct UserRank {
-    string codinome;
-    address userAddress;
-    uint256 balance;
+        string codinome;
+        address userAddress;
+        uint256 balance;
     }
 
     function getRanking() public view returns (UserRank[] memory) {
         uint256 length = codenamesList.length;
-        UserRank[] memory ranks = new UserRank[](length);
+        UserRank[] memory ranks = new UserRank[](length); // 
 
         for (uint256 i = 0; i < length; i++) {
             string memory c = codenamesList[i];
             address addr = userAddress[c];
             ranks[i] = UserRank(c, addr, balanceOf(addr));
-        }
-
-        for (uint256 i = 0; i < length; i++) {
-            for (uint256 j = i + 1; j < length; j++) {
-                if (ranks[i].balance < ranks[j].balance) {
-                    UserRank memory temp = ranks[i];
-                    ranks[i] = ranks[j];
-                    ranks[j] = temp;
-                }
-            }
         }
 
         return ranks;
